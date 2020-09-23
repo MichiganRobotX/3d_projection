@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import numpy as np
 
 # Convert pointcloud to image plane
 def from_lidar_to_image():
@@ -8,10 +8,24 @@ def from_lidar_to_image():
 def search_3d_object_points():
     pass
 
-def from_lidar_to_map():
-    pass
 
-def get_landmarks():
+# Requires:
+# 1. LtoV: transformation matrix between lidar frame to vehicle frame
+# 2. VtoM: transformation matrix between vehicle frame to map frame
+# 3. lidar points: np array in homogenous coordinates 4xN
+# Returns:
+# 3d points: np array in map coordinate frame 4XN
+def from_lidar_to_map(LtoV, VtoM, lidar_points):
+    # pass
+    return np.array(LtoV).dot(np.array(VtoM).dot(lidar_points))
+
+# Requires:
+# 1. lidar points: np array in homogenous coordinates 4xN
+# 2. 
+# 3. 
+# Returns:
+# 3d points: np array in map coordinate frame 4XN
+def get_landmarks(lidar_points, ):
     pass
 
 # Subscriber callbacks
