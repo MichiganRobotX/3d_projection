@@ -1,32 +1,89 @@
 #!/usr/bin/env python
 import numpy as np
 
+
+class Landmarks:
+    # This class stores landmarks information
+    def __init__(self):
+        self.landmarks = []     # list of np arrays
+
+    # Inputs:
+    # pt1, pt2 : np.array of size 3x1
+    # Outputs: euclidean distance
+    def l2_dist(self, pt1, pt2):
+        return np.linalg.norm(np.vstack((pt1, pt2)))
+
+    # Inputs:
+    # point: np.array of 3x1
+    # Outputs:
+    # landmark id: id if present otherwise -1
+    def search_landmark(self, point):
+        if len(self.landmarks) == 0:
+            return -1
+
+        min_dist = 0.254   # threshold of 10 inches = 0.254 m
+        min_id = -1
+        for i in range(len(self.landmarks)):
+            dist = self.l2_dist(self.landmarks[i], point)
+            if dist < min_dist:
+                min_dist = dist
+                min_id = i
+        return min_id
+
+    # Inputs:
+    # point: np.array of 3x1
+    def add_landmark(self, point):
+        self.landmarks.append(point)
+
+    # Outputs:
+    # returns last landmark id, if it is first landmark then returns -1
+    def get_last_id(self):
+        return len(self.landmarks)-1
+
+    def get_pose(self, ID):
+        return self.landmarks[ID]
+
+
 # Convert pointcloud to image plane
 def from_lidar_to_image():
     pass
+
 
 def search_3d_object_points():
     pass
 
 
-# Requires:
+# Input:
 # 1. LtoV: transformation matrix between lidar frame to vehicle frame
 # 2. VtoM: transformation matrix between vehicle frame to map frame
 # 3. lidar points: np array in homogenous coordinates 4xN
-# Returns:
+# Outputs:
 # 3d points: np array in map coordinate frame 4XN
 def from_lidar_to_map(LtoV, VtoM, lidar_points):
-    # pass
     return np.array(LtoV).dot(np.array(VtoM).dot(lidar_points))
 
-# Requires:
+
+# Inputs:
 # 1. lidar points: np array in homogenous coordinates 4xN
-# 2. 
-# 3. 
-# Returns:
-# 3d points: np array in map coordinate frame 4XN
-def get_landmarks(lidar_points, ):
-    pass
+# 2. Landmarks: instantiated landmark class which stres landmarks
+# Outputs:
+# img_landmarks: np array Nx2 first colm: IDs second: pose
+def get_landmarks(lidar_points, Landmarks):
+    # pt : np.array = [x,y,z]
+    # img_landmarks : np.array of np.arrays = [[id0,pt0],[id1,pt1],[id2,pt2]]
+    img_landmarks = []
+    for i in range(lidar_points.shape[1]):
+        pt = lidar_points[:3, i]            # np array
+        ID = Landmarks.search_landmark(pt)
+        if ID == -1:
+            Landmarks.add_landmark(pt)
+            last_id = Landmarks.get_last_id()
+            img_landmarks.append(np.array([last_id, pt]))
+        else:
+            img_landmarks.append(np.array([ID, Landmarks.get_pose(ID)]))
+
+    return np.array(img_landmarks)
+
 
 # Subscriber callbacks
 
@@ -38,5 +95,3 @@ if __name__ == '__main__':
     object_detector_topic = "object_detector"
     bounding_box_topic = "bounding_boxes"
     lidar_point_cloud_topic = "/scan"
-
-
