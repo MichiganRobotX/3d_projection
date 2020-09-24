@@ -1,0 +1,346 @@
+transforms: 
+  - 
+    header: 
+      seq: 0
+      stamp: 
+        secs: 17
+        nsecs: 250000000
+      frame_id: "wamv/odom"
+    child_frame_id: "utm"
+    transform: 
+      translation: 
+        x: -631694.385786
+        y: -2352468.4625
+        z: 0.0
+      rotation: 
+        x: 0.0
+        y: 0.0
+        z: -0.00352028770279
+        w: 0.999993803768
+---
+transforms: 
+  - 
+    header: 
+      seq: 0
+      stamp: 
+        secs: 17
+        nsecs: 238000000
+      frame_id: "wamv/base_link"
+    child_frame_id: "wamv/front_left_camera_post_link"
+    transform: 
+      translation: 
+        x: 0.7
+        y: 0.1
+        z: 1.38475
+      rotation: 
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+  - 
+    header: 
+      seq: 0
+      stamp: 
+        secs: 17
+        nsecs: 238000000
+      frame_id: "wamv/base_link"
+    child_frame_id: "wamv/front_right_camera_post_link"
+    transform: 
+      translation: 
+        x: 0.7
+        y: -0.1
+        z: 1.38475
+      rotation: 
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+  - 
+    header: 
+      seq: 0
+      stamp: 
+        secs: 17
+        nsecs: 238000000
+      frame_id: "wamv/base_link"
+    child_frame_id: "wamv/lidar_wamv_post_link"
+    transform: 
+      translation: 
+        x: 0.63
+        y: 0.0
+        z: 1.52325
+      rotation: 
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+  - 
+    header: 
+      seq: 0
+      stamp: 
+        secs: 17
+        nsecs: 238000000
+      frame_id: "wamv/base_link"
+    child_frame_id: "wamv/middle_right_camera_post_link"
+    transform: 
+      translation: 
+        x: 0.5
+        y: -0.4
+        z: 1.38475
+      rotation: 
+        x: 0.0
+        y: 0.0
+        z: -0.707106781185
+        w: 0.707106781188
+  - 
+    header: 
+      seq: 0
+      stamp: 
+        secs: 17
+        nsecs: 238000000
+      frame_id: "wamv/base_link"
+    child_frame_id: "wamv/cpu_cases_link"
+    transform: 
+      translation: 
+        x: -0.15
+        y: 0.0
+        z: 1.53
+      rotation: 
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+  - 
+    header: 
+      seq: 0
+      stamp: 
+        secs: 17
+        nsecs: 238000000
+      frame_id: "wamv/base_link"
+    child_frame_id: "wamv/dummy_link"
+    transform: 
+      translation: 
+        x: 0.0
+        y: 0.0
+        z: 0.0
+      rotation: 
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+  - 
+    header: 
+      seq: 0
+      stamp: 
+        secs: 17
+        nsecs: 238000000
+      frame_id: "wamv/front_left_camera_post_arm_link"
+    child_frame_id: "wamv/front_left_camera_link"
+    transform: 
+      translation: 
+        x: 0.02
+        y: 0.0
+        z: 0.027
+      rotation: 
+        x: 0.0
+        y: 0.13052619222
+        z: 0.0
+        w: 0.991444861374
+  - 
+    header: 
+      seq: 0
+      stamp: 
+        secs: 17
+        nsecs: 238000000
+      frame_id: "wamv/front_left_camera_post_link"
+    child_frame_id: "wamv/front_left_camera_post_arm_link"
+    transform: 
+      translation: 
+        x: 0.03
+        y: 0.0
+        z: 0.08825
+      rotation: 
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+  - 
+    header: 
+      seq: 0
+      stamp: 
+        secs: 17
+        nsecs: 238000000
+      frame_id: "wamv/front_right_camera_post_arm_link"
+    child_frame_id: "wamv/front_right_camera_link"
+    transform: 
+      translation: 
+        x: 0.02
+        y: 0.0
+        z: 0.027
+      rotation: 
+        x: 0.0
+        y: 0.13052619222
+        z: 0.0
+        w: 0.991444861374
+  - 
+    header: 
+      seq: 0
+      stamp: 
+        secs: 17
+        nsecs: 238000000
+      frame_id: "wamv/front_right_camera_post_link"
+    child_frame_id: "wamv/front_right_camera_post_arm_link"
+    transform: 
+      translation: 
+        x: 0.03
+        y: 0.0
+        z: 0.08825
+      rotation: 
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+  - 
+    header: 
+      seq: 0
+      stamp: 
+        secs: 17
+        nsecs: 238000000
+      frame_id: "wamv/base_link"
+    child_frame_id: "wamv/gps_wamv_link"
+    transform: 
+      translation: 
+        x: -0.85
+        y: 0.0
+        z: 1.3
+      rotation: 
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+  - 
+    header: 
+      seq: 0
+      stamp: 
+        secs: 17
+        nsecs: 238000000
+      frame_id: "wamv/base_link"
+    child_frame_id: "wamv/imu_wamv_link"
+    transform: 
+      translation: 
+        x: 0.3
+        y: -0.2
+        z: 1.3
+      rotation: 
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+  - 
+    header: 
+      seq: 0
+      stamp: 
+        secs: 17
+        nsecs: 238000000
+      frame_id: "wamv/base_link"
+    child_frame_id: "wamv/left_battery_link"
+    transform: 
+      translation: 
+        x: 0.0
+        y: 1.0
+        z: 0.45
+      rotation: 
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+  - 
+    header: 
+      seq: 0
+      stamp: 
+        secs: 17
+        nsecs: 238000000
+      frame_id: "wamv/lidar_wamv_post_arm_link"
+    child_frame_id: "wamv/lidar_wamv_link"
+    transform: 
+      translation: 
+        x: 0.04
+        y: 0.0
+        z: 0.05
+      rotation: 
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+  - 
+    header: 
+      seq: 0
+      stamp: 
+        secs: 17
+        nsecs: 238000000
+      frame_id: "wamv/lidar_wamv_post_link"
+    child_frame_id: "wamv/lidar_wamv_post_arm_link"
+    transform: 
+      translation: 
+        x: 0.03
+        y: 0.0
+        z: 0.22675
+      rotation: 
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+  - 
+    header: 
+      seq: 0
+      stamp: 
+        secs: 17
+        nsecs: 238000000
+      frame_id: "wamv/middle_right_camera_post_arm_link"
+    child_frame_id: "wamv/middle_right_camera_link"
+    transform: 
+      translation: 
+        x: 0.02
+        y: 0.0
+        z: 0.027
+      rotation: 
+        x: 0.0
+        y: 0.13052619222
+        z: 0.0
+        w: 0.991444861374
+  - 
+    header: 
+      seq: 0
+      stamp: 
+        secs: 17
+        nsecs: 238000000
+      frame_id: "wamv/middle_right_camera_post_link"
+    child_frame_id: "wamv/middle_right_camera_post_arm_link"
+    transform: 
+      translation: 
+        x: 0.03
+        y: 0.0
+        z: 0.08825
+      rotation: 
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+  - 
+    header: 
+      seq: 0
+      stamp: 
+        secs: 17
+        nsecs: 238000000
+      frame_id: "wamv/base_link"
+    child_frame_id: "wamv/right_battery_link"
+    transform: 
+      translation: 
+        x: 0.0
+        y: -1.0
+        z: 0.45
+      rotation: 
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+---
