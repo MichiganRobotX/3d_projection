@@ -60,7 +60,7 @@ def search_3d_object_points():
 # Outputs:
 # 3d points: np array in map coordinate frame 4XN
 def from_lidar_to_map(LtoV, VtoM, lidar_points):
-    return np.array(LtoV).dot(np.array(VtoM).dot(lidar_points))
+    return np.array(VtoM).dot(np.array(LtoV).dot(lidar_points))
 
 
 # Inputs:
