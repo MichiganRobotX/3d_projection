@@ -1,5 +1,49 @@
 #!/usr/bin/env python
+import rospy
 import numpy as np
+from message_filters import ApproximateTimeSynchronizer, Subscriber
+from std_msgs import msg
+from BoundingBoxes.msg import BoundingBoxes
+from geometry_msgs.msg import PoseStamped
+from sensor_msgs.msg import PointCloud2
+from scipy.spatial.transform import Rotation as R
+
+# Define subscriber
+obj_no_sub = Subscriber("????", Int8) # not sure the topic name of objects number
+bbox_sub = Subscriber("????", BoundingBoxes) # not sure the topic name of bbox
+pcl_sub = Subscriber("/vel1/velodyne_points", PointCloud2)
+
+syc = ApproximateTimeSynchronizer([obj_no_sub, bbox_sub, pcl_sub], queue_size=5, slop=0.1)
+syc.registerCallback(??????) # fill in the callback function
+
+# Intrinsic information of front-left camera
+K = [[762.7249337622711, 0.0, 640.5], [0.0, 762.7249337622711, 360.5], [0.0, 0.0, 1.0]]
+P = [[762.7249337622711, 0.0, 640.5, -53.39074536335898], [0.0, 762.7249337622711, 360.5, 0.0], [0.0, 0.0, 1.0, 0.0]]
+
+## Extrinsic information
+# Front-left camera to base
+p_fl2b = [0.75, 0.1, 1.5]
+orien_fl2b = [0.56099, -0.56099, 0.43046, -0.43046]
+R_fl2b = R.from_quat(orien_fl2b)
+T_fl2b = np.concatenate((R_fl2b.as_matrix(), np.reshape(p_fl2b, (3,1))), axis=1)
+T_fl2b = np.concatenate((T_fl2b, [0, 0, 0, 1]), axis=0)
+# Lidar to base
+p_ld2b = [0.7, 0, 1.8]
+orien_ld2b = [0, 0, 0, 1]
+R_ld2b = R.from_quat(orien_ld2b)
+T_ld2b = np.concatenate((R_ld2b.as_matrix(), np.reshape(p_ld2b, (3,1))), axis=1)
+T_ld2b = np.concatenate((T_ld2b, [0, 0, 0, 1]), axis=0)
+
+# Lidar to Front-left Camera
+T_ld2fl = np.dot(T_fl2b, np.linalg.inv(T_ld2b))
+
+# Define publisher
+ldmk_id_pubulish = rospy.Publisher('/landmark/id',????, queue_size=1) #Not sure landmark id type
+pose_publish = rospy.Publisher('/landmark/pose', PoseStamped, queue_size=1)
+
+# In callback function add the following lines:
+# ldmk_id_pubulish.publish(id)
+# pose_publish.publish(pose)
 
 
 class Landmarks:
