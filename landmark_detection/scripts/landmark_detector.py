@@ -37,6 +37,7 @@ class LandmarkDetector:
     def __init__(self):
         # Initialize node
         rospy.init_node('landmark_detector', anonymous=True)
+        rospy.loginfo("============= landmark_detector start =============")
         bbox_sub = Subscriber(self.bbox_topic, BoundingBoxes)
         pcl_sub = Subscriber(self.pcloud_topic, PointCloud2)
         syc = ApproximateTimeSynchronizer([bbox_sub, pcl_sub], queue_size=5, slop=0.1)
