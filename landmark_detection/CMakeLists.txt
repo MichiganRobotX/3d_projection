@@ -56,7 +56,7 @@ add_message_files(
 #BoundingBoxes.msg
 #BoundingBox.msg
 #ObjectCount.msg
-LandmarkPoseWithID.msg
+DIRECTORY msg FILES LandmarkPoseWithId.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -113,7 +113,7 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
+  #INCLUDE_DIRS include
   CATKIN_DEPENDS roscpp rospy std_msgs actionlib_msgs sensor_msgs message_generation geometry_msgs message_filters sensor_msgs darknet_ros_msgs
 )
 
@@ -167,10 +167,10 @@ include_directories(
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-# catkin_install_python(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+catkin_install_python(PROGRAMS
+  scripts/landmark_detector.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html

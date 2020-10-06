@@ -9,7 +9,7 @@ import struct
 from std_msgs.msg import Header
 from message_filters import ApproximateTimeSynchronizer, Subscriber
 from scipy import spatial
-from LandmarkPoseWithId.msg import LandmarkPoseWithId
+from landmark_detection.msg import LandmarkPoseWithId
 
 class LandmarkDetector:
     # Setup topic names
