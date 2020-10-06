@@ -9,6 +9,7 @@ import struct
 from std_msgs.msg import Header
 from message_filters import ApproximateTimeSynchronizer, Subscriber
 from scipy import spatial
+from LandmarkPoseWithId.msg import LandmarkPoseWithId
 
 class LandmarkDetector:
     # Setup topic names
@@ -36,17 +37,22 @@ class LandmarkDetector:
     def __init__(self):
         # Initialize node
         rospy.init_node('landmark_detector', anonymous=True)
-        rospy.Subscriber(self.bbox_topic, BoundingBoxes, self.update_bbox)
-        rospy.Subscriber(self.pcloud_topic, PointCloud2, self.update_pcloud)
+        bbox_sub = Subscriber(self.bbox_topic, BoundingBoxes)
+        pcl_sub = Subscriber(self.pcloud_topic, PointCloud2)
+        syc = ApproximateTimeSynchronizer([bbox_sub, pcl_sub], queue_size=5, slop=0.1)
+        syc.registerCallback(self.update_bbox_and_pcloud)
 
-    def update_bbox(self, bboxes):
+    def update_bbox_and_pcloud(self, bboxes, pcloud):
+        # def update_bbox(self, bboxes):
         self.bboxes = bboxes
         self.get_center()
         print(self.centers_xyz)
 
-    def update_pcloud(self, pcloud):
+        # def update_pcloud(self, pcloud):
         self.pcloud_pc2 = pcloud
         self.pc2_to_xyz()
+
+        self.publish_landmark_info(landmark_id, landmark_pose, pcloud.header)
 
     def pc2_to_xyz(self):
         xyz = np.array([[0,0,0]])
@@ -104,6 +110,13 @@ class LandmarkDetector:
         self.lidar_to_img_plane()
         self.center_from_bbox()
         self.nearest_neighbor()
+    
+    def publish_landmark_info(self, landmark_id, landmark_pose, header):
+        landmark_info_msg = LandmarkPoseWithId()
+        landmark_info_msg.header = header
+        landmark_info_msg.id = landmark_id
+        landmark_info_msg.pose = landmark_pose
+        self.landmark_pub.publish(landmark_info_msg)
 
     def run(self):
         rospy.spin()

@@ -4,13 +4,13 @@ import numpy as np
 from message_filters import ApproximateTimeSynchronizer, Subscriber
 from std_msgs import msg
 from BoundingBoxes.msg import BoundingBoxes
-from geometry_msgs.msg import PoseStamped
+from LandmarkPoseWithId.msg import LandmarkPoseWithId
 from sensor_msgs.msg import PointCloud2
 from scipy.spatial.transform import Rotation as R
 
 # Define subscriber
-obj_no_sub = Subscriber("????", Int8) # not sure the topic name of objects number
-bbox_sub = Subscriber("????", BoundingBoxes) # not sure the topic name of bbox
+obj_no_sub = Subscriber("/object_detector", Int8) # not sure the topic name of objects number
+bbox_sub = Subscriber("/bounding_boxes", BoundingBoxes) # not sure the topic name of bbox
 pcl_sub = Subscriber("/vel1/velodyne_points", PointCloud2)
 
 syc = ApproximateTimeSynchronizer([obj_no_sub, bbox_sub, pcl_sub], queue_size=5, slop=0.1)
@@ -38,12 +38,10 @@ T_ld2b = np.concatenate((T_ld2b, [0, 0, 0, 1]), axis=0)
 T_ld2fl = np.dot(T_fl2b, np.linalg.inv(T_ld2b))
 
 # Define publisher
-ldmk_id_pubulish = rospy.Publisher('/landmark/id',????, queue_size=1) #Not sure landmark id type
-pose_publish = rospy.Publisher('/landmark/pose', PoseStamped, queue_size=1)
+ldmk_pose_and_id_pub = rospy.Publisher('/landmark/info', LandmarkPoseWithId, queue_size=1)
 
 # In callback function add the following lines:
-# ldmk_id_pubulish.publish(id)
-# pose_publish.publish(pose)
+# ldmk_pose_and_id_pub.publish(pose_and_id)
 
 
 class Landmarks:
