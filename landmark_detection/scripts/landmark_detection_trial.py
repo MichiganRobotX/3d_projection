@@ -15,7 +15,7 @@ class C:
         # Tf from flc to lidar
         self.flc_to_lidar = np.array([-0.07, -0.1, 0.13850])
         # Intrinsic Matrix
-        self.flc_K =  np.array([[0.7627249337622711, 0.0, 0.6405],[0.0, 0.7627249337622711, 0.3605],[0.0, 0.0, 1.0]])
+        self.flc_K =  np.array([[762.7249337622711, 0.0, 640.5],[0.0, 762.7249337622711, 360.5],[0.0, 0.0, 1.0]])
 
 
 
@@ -28,6 +28,8 @@ class C:
         int_data = list(gen)
 
         for x in int_data:
+            if (x[0] <= 0.0):
+                continue
             test = x[3] 
             # cast float32 to int so that bitwise operations are possible
             s = struct.pack('>f' ,test)
@@ -46,7 +48,7 @@ class C:
         xyz_flc_cam = xyz + self.flc_to_lidar
         uv_flc_cam = np.dot(self.flc_K,xyz_flc_cam.T) # 3 x lamba
         uv_flc_cam = uv_flc_cam / uv_flc_cam[2,:]
-        print(xyz[100])
+        print(uv_flc_cam[:,20])
     
     def from_lidar_to_image(self):
         # Inspect pcl data from simulator
