@@ -1,5 +1,5 @@
 # 3d_projection
-This repo contains package for publishing 3D landmark pose and ID for robotX boat.
+This repo contains ros package for publishing 3D landmark pose and ID for robotX boat.
 
 ## Input topics:
 /darknet_ros/bounding_boxes
