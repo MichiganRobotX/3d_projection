@@ -13,8 +13,10 @@ LandmarkPoseWithId
 In catkin_ws/src
 ```
 git clone https://github.com/LuoXin0826/3d_projection.git
-```
-
-```
-rm 
+cd 3d_projection/landmark_detection
+mv darknet_ros_msgs ../..
+cd ../../..
+catkin_make
+source devel/setup.bash
+rosrun 3d_projection landmark_detector.py
 ```
