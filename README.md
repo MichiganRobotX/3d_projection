@@ -18,5 +18,5 @@ mv darknet_ros_msgs ../..
 cd ../../..
 catkin_make
 source devel/setup.bash
-rosrun 3d_projection landmark_detector.py
+rosrun landmark_detection landmark_detector.py
 ```
