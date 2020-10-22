@@ -1,7 +1,11 @@
+import numpy as np
+
+
 class Landmarks:
     # This class stores landmarks information
     def __init__(self):
         self.landmarks = []     # list of np arrays
+        self.landmarks_classification = [] # id corr to self.landmarks
 
     # Inputs:
     # pt1, pt2 : np.array of size 3x1
@@ -38,6 +42,7 @@ class Landmarks:
 
     def get_pose(self, ID):
         return self.landmarks[ID]
+
 
 def get_landmarks(lidar_points, Landmarks):
     # pt : np.array = [x,y,z]
