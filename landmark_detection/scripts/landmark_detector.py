@@ -11,12 +11,14 @@ from message_filters import ApproximateTimeSynchronizer, Subscriber
 from scipy import spatial
 from landmark_detection.msg import LandmarkPoseWithId
 from Landmarks import Landmarks
+from gazebo_msgs.msg import LinkStates
 
 class LandmarkDetector:
     # Setup topic names
     bbox_topic = "/darknet_ros/bounding_boxes"
     pcloud_topic = "/wamv/sensors/lidars/lidar_wamv/points"
-    camera_info_topic = "/wamv/sensors/cameras/front_left_camera/camera_info"
+    #camera_info_topic = "/wamv/sensors/cameras/front_left_camera/camera_info"
+    pose_topic = "/gazebo/link_states"
 
     bboxes = None
     pcloud_pc2 = None
@@ -55,6 +57,7 @@ class LandmarkDetector:
         rospy.loginfo("============= landmark_detector start =============")
         bbox_sub = rospy.Subscriber(self.bbox_topic, BoundingBoxes, self.update_bbox)
         pcl_sub = rospy.Subscriber(self.pcloud_topic, PointCloud2, self.update_pcloud)
+        pose_sub = rospy.Subscriber(self.pose_topic, LinkStates, self.publish_landmark_info)
         # bbox_sub = Subscriber(self.bbox_topic, BoundingBoxes)
         # pcl_sub = Subscriber(self.pcloud_topic, PointCloud2)
         # rospy.loginfo("============= synchronizer start =============")
