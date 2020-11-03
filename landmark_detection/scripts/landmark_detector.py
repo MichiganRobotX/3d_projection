@@ -57,11 +57,8 @@ class LandmarkDetector:
         pcl_sub = rospy.Subscriber(self.pcloud_topic, PointCloud2, self.update_pcloud)
         # bbox_sub = Subscriber(self.bbox_topic, BoundingBoxes)
         # pcl_sub = Subscriber(self.pcloud_topic, PointCloud2)
-        # rospy.loginfo("============= synchronizer start =============")
         # syc = ApproximateTimeSynchronizer([bbox_sub, pcl_sub], queue_size=10, slop=0.35)
-        # rospy.loginfo("============= register callback start =============")
         # syc.registerCallback(self.update_bbox_and_pcloud)
-        # rospy.loginfo("============= register callback end =============")
 
     # def update_bbox_and_pcloud(self, bboxes, pcloud):
     def update_bbox(self, bboxes):
@@ -74,9 +71,12 @@ class LandmarkDetector:
         self.pc2_to_xyz()
         current_bboxes = self.bboxes
         self.get_center(current_bboxes)
+        print("Centers of objects are:")
         print(self.centers_xyz)
+        print("================================")
+        # self.objects_to_landmarks(current_bboxes)
 
-        # self.publish_landmark_info(landmark_id, landmark_pose, pcloud.header)
+        # self.publish_landmark_info(self.img_landmarks[:,0], self.img_landmarks[:,1], pcloud.header)
 
     def pc2_to_xyz(self):
         xyz = np.array([[0, 0, 0]])
@@ -141,13 +141,39 @@ class LandmarkDetector:
         # print("================= End =============")
         self.centers_xyz = self.pcloud_xyz[self.nearest_idx_uv]
 
-    def lidar_to_base(self):
-        pass
-
     def get_center(self, bboxes):
         self.lidar_to_img_plane()
         self.center_from_bbox(bboxes)
         self.nearest_neighbor(bboxes)
+
+    def objects_to_landmarks(self, bboxes):
+        # convert self.centers_xyz to map frame
+        self.lidar_to_map()
+        self.get_landmarks(bboxes)
+
+    def lidar_to_map(self):
+        pass
+        # centers_base = self.centers_xyz - self.base_to_lidar  # Nx3
+        # centers_base_hom = np.hstack(centers_base, np.ones(len(centers_base)).reshape(-1,1))  # Nx4
+        # centers_map = (self.base_to_map @ centers_base_hom).T  # 4xN
+        # centers_map = centers_map / centers_map[3, :]
+        # self.centers_map = centers_map  # 3xN
+
+    def get_landmarks(self, bboxes):
+        pass
+        # img_landmarks = []  # np array of 0 col=class, 1 col=pose
+        # for i in range(len(self.centers_map)):
+        #     pt = self.centers_map[:, i]  # i from 3xN
+        #     obj_class = bboxes[i].id
+        #     ID = self.landmarks_list.search_landmark(pt, obj_class)
+        #     if ID == -1:
+        #         self.landmarks_list.add_landmark(pt, obj_class)
+        #         last_id = self.landmarks_list.get_last_id()
+        #         img_landmarks.append(np.array([last_id, pt]))
+        #     else:
+        #         img_landmarks.append(np.array([ID, self.landmarks_list.get_pose(ID)]))
+
+        # self.img_landmarks = np.array(img_landmarks)  # Nx2
 
     def publish_landmark_info(self, landmark_id, landmark_pose, header):
         pass
