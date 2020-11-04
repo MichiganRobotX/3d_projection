@@ -6,7 +6,7 @@ This repo contains ros package for publishing 3D landmark pose, label and ID for
 /wamv/sensors/lidars/lidar_wamv/points<br/> 
 
 ## Output topics:
-Landmarksmsg
+/sensor_frame_landmark_pose_with_id
 
 ## To Run the package
 In catkin_ws/src
