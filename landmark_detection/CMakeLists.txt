@@ -56,7 +56,7 @@ add_message_files(
 #BoundingBoxes.msg
 #BoundingBox.msg
 #ObjectCount.msg
-DIRECTORY msg FILES LandmarkPoseWithId.msg
+DIRECTORY msg FILES Landmarkmsg.msg Landmarksmsg.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -114,7 +114,7 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   #INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp rospy std_msgs actionlib_msgs sensor_msgs message_generation geometry_msgs message_filters sensor_msgs darknet_ros_msgs
+  CATKIN_DEPENDS roscpp rospy std_msgs actionlib_msgs sensor_msgs message_runtime message_generation geometry_msgs message_filters sensor_msgs darknet_ros_msgs
 )
 
 ###########

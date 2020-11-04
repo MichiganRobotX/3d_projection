@@ -9,7 +9,7 @@ import struct
 from std_msgs.msg import Header
 from message_filters import ApproximateTimeSynchronizer, Subscriber
 from scipy import spatial
-from landmark_detection.msg import LandmarkPoseWithId
+from landmark_detection.msg import Landmarkmsg, Landmarksmsg
 from Landmarks import Landmarks
 from gazebo_msgs.msg import LinkStates
 
@@ -45,11 +45,14 @@ class LandmarkDetector:
                                           [0,0,1,0],
                                           [-1,0,0,0],
                                           [0,0,0,1]])
-    lidar_to_flc = lidar_flc_fram_correction @ flc_arm_to_flc @ lidar_to_flc_arm
+    # lidar_to_flc = lidar_flc_fram_correction @ flc_arm_to_flc @ lidar_to_flc_arm
+    lidar_to_flc = np.matmul(np.matmul(lidar_flc_fram_correction, flc_arm_to_flc) , lidar_to_flc_arm)
     lidar_to_base = np.array([0, 0, 0])
     flc_K = np.array([[762.7249337622711, 0.0, 640.5], [0.0, 762.7249337622711, 360.5], [0.0, 0.0, 1.0]])
 
     landmarks_list = Landmarks()
+    landmark_id = None
+    landmark_label = None
 
     def __init__(self):
         # Initialize node
@@ -57,7 +60,7 @@ class LandmarkDetector:
         rospy.loginfo("============= landmark_detector start =============")
         bbox_sub = rospy.Subscriber(self.bbox_topic, BoundingBoxes, self.update_bbox)
         pcl_sub = rospy.Subscriber(self.pcloud_topic, PointCloud2, self.update_pcloud)
-        pose_sub = rospy.Subscriber(self.pose_topic, LinkStates, self.publish_landmark_info)
+        # pose_sub = rospy.Subscriber(self.pose_topic, LinkStates, self.publish_landmark_info)
         # bbox_sub = Subscriber(self.bbox_topic, BoundingBoxes)
         # pcl_sub = Subscriber(self.pcloud_topic, PointCloud2)
         # rospy.loginfo("============= synchronizer start =============")
@@ -65,6 +68,7 @@ class LandmarkDetector:
         # rospy.loginfo("============= register callback start =============")
         # syc.registerCallback(self.update_bbox_and_pcloud)
         # rospy.loginfo("============= register callback end =============")
+        self.landmark_pub = rospy.Publisher("/sensor_frame_landmark_pose_with_id", Landmarksmsg, queue_size=1)
 
     # def update_bbox_and_pcloud(self, bboxes, pcloud):
     def update_bbox(self, bboxes):
@@ -77,9 +81,9 @@ class LandmarkDetector:
         self.pc2_to_xyz()
         current_bboxes = self.bboxes
         self.get_center(current_bboxes)
-        print(self.centers_xyz)
+        # print(self.centers_xyz)
 
-        # self.publish_landmark_info(landmark_id, landmark_pose, pcloud.header)
+        self.publish_landmark_info(self.landmark_id, self.landmark_label, self.centers_xyz, pcloud.header)
 
     def pc2_to_xyz(self):
         xyz = np.array([[0, 0, 0]])
@@ -108,13 +112,14 @@ class LandmarkDetector:
         self.pcloud_xyz = xyz   # Nx3
 
     def lidar_to_img_plane(self):
-        xyz_flc_cam = self.lidar_to_flc @ np.hstack((self.pcloud_xyz, np.ones(len(self.pcloud_xyz)).reshape(-1,1))).T  # homogenize and matmul (4xN)
+        # xyz_flc_cam = self.lidar_to_flc @ np.hstack((self.pcloud_xyz, np.ones(len(self.pcloud_xyz)).reshape(-1,1))).T  # homogenize and matmul (4xN)
+        xyz_flc_cam = np.matmul(self.lidar_to_flc, np.hstack((self.pcloud_xyz, np.ones(len(self.pcloud_xyz)).reshape(-1,1))).T) # homogenize and matmul (4xN)
         uv_flc_cam = np.dot(self.flc_K, xyz_flc_cam[:3, :])  # 3xN
         self.camera_uv = uv_flc_cam / uv_flc_cam[2, :]  # 3xN
 
     def center_from_bbox(self, bboxes):
-        # num_bboxes = len(self.bboxes.bounding_boxes)
-        num_bboxes = len(bboxes.bounding_boxes)
+        num_bboxes = len(self.bboxes.bounding_boxes)
+        # num_bboxes = len(bboxes.bounding_boxes)
         self.centers_uv = np.zeros((2, num_bboxes))  # 2xN
         for i in range(num_bboxes):
             # print(f"xmin: {self.bboxes.bounding_boxes[i].xmin}, xmax: {self.bboxes.bounding_boxes[i].xmax}, ymin: {self.bboxes.bounding_boxes[i].ymin}, ymax: {self.bboxes.bounding_boxes[i].ymax}")
@@ -152,13 +157,19 @@ class LandmarkDetector:
         self.center_from_bbox(bboxes)
         self.nearest_neighbor(bboxes)
 
-    def publish_landmark_info(self, landmark_id, landmark_pose, header):
-        pass
-        # landmark_info_msg = LandmarkPoseWithId()
-        # landmark_info_msg.header = header
-        # landmark_info_msg.id = landmark_id
-        # landmark_info_msg.pose = landmark_pose
-        # self.landmark_pub.publish(landmark_info_msg)
+    def publish_landmark_info(self, landmark_id, landmark_label, landmark_pose, header):
+        landmarks_info_msg = Landmarksmsg()
+        landmarks_info_msg.header = header
+        num_bboxes = len(landmark_pose)
+        for i in range(num_bboxes):
+            landmark_info_msg = Landmarkmsg()
+            # landmark_info_msg.id = landmark_id[i]
+            # landmark_info_msg.label = landmark_label[i]
+            landmark_info_msg.pose.x = landmark_pose[i][0]
+            landmark_info_msg.pose.y = landmark_pose[i][1]
+            landmark_info_msg.pose.z = landmark_pose[i][2]
+            landmarks_info_msg.landmarks.append(landmark_info_msg)
+        self.landmark_pub.publish(landmarks_info_msg)
 
     def run(self):
         rospy.spin()
