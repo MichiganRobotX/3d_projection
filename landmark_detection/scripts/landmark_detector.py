@@ -154,12 +154,16 @@ class LandmarkDetector:
 
     def lidar_to_base(self, landmark_pose_lidar_frame):
         p_ld2b = [0.7, 0, 1.8]
-        orien_ld2b = [0, 0, 0, 1]
-        R_ld2b = R.from_quat(orien_ld2b)
-        T_ld2b = np.concatenate((R_ld2b.as_dcm(), np.reshape(p_ld2b, (3,1))), axis=1)
-        T_ld2b = np.concatenate((T_ld2b, np.array([[0, 0, 0, 1]])), axis=0)
-        landmark_pose_lidar_frame = np.append(landmark_pose_lidar_frame, np.array([1]))
-        landmark_pose_base_frame =  np.matmul(T_ld2b, np.reshape(landmark_pose_lidar_frame, (4,1)))
+        # orien_ld2b = [0, 0, 0, 1]
+        # R_ld2b = R.from_quat(orien_ld2b)
+        # T_ld2b = np.concatenate((R_ld2b.as_dcm(), np.reshape(p_ld2b, (3,1))), axis=1)
+        # T_ld2b = np.concatenate((T_ld2b, np.array([[0, 0, 0, 1]])), axis=0)
+        # landmark_pose_lidar_frame = np.append(landmark_pose_lidar_frame, np.array([1]))
+        # landmark_pose_base_frame =  np.matmul(T_ld2b, np.reshape(landmark_pose_lidar_frame, (4,1)))
+        landmark_pose_base_frame = landmark_pose_lidar_frame
+        landmark_pose_base_frame[0] += p_ld2b[0]
+        landmark_pose_base_frame[1] += p_ld2b[1]
+        landmark_pose_base_frame[2] += p_ld2b[2]
         return landmark_pose_base_frame;
 
     def get_center(self, bboxes):
