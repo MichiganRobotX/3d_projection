@@ -11,7 +11,7 @@ This repo contains ros package for publishing 3D landmark pose, label and ID for
 ## To Run the package
 In catkin_ws/src
 ```
-git clone https://github.com/LuoXin0826/3d_projection.git
+git clone https://github.com/MichiganRobotX/3d_projection.git
 cd 3d_projection/landmark_detection
 mv darknet_ros_msgs ../..
 cd ../../..
