@@ -12,13 +12,14 @@ from scipy import spatial
 from landmark_detection.msg import Landmarkmsg, Landmarksmsg
 from Landmarks import Landmarks
 from gazebo_msgs.msg import LinkStates
+from scipy.spatial.transform import Rotation as R
 
 class LandmarkDetector:
     # Setup topic names
     bbox_topic = "/darknet_ros/bounding_boxes"
     pcloud_topic = "/wamv/sensors/lidars/lidar_wamv/points"
     #camera_info_topic = "/wamv/sensors/cameras/front_left_camera/camera_info"
-    pose_topic = "/gazebo/link_states"
+    #pose_topic = "/gazebo/link_states"
 
     bboxes = None
     pcloud_pc2 = None
@@ -47,7 +48,6 @@ class LandmarkDetector:
                                           [0,0,0,1]])
     # lidar_to_flc = lidar_flc_fram_correction @ flc_arm_to_flc @ lidar_to_flc_arm
     lidar_to_flc = np.matmul(np.matmul(lidar_flc_fram_correction, flc_arm_to_flc) , lidar_to_flc_arm)
-    lidar_to_base = np.array([0, 0, 0])
     flc_K = np.array([[762.7249337622711, 0.0, 640.5], [0.0, 762.7249337622711, 360.5], [0.0, 0.0, 1.0]])
 
     landmarks_list = Landmarks()
@@ -68,7 +68,7 @@ class LandmarkDetector:
         # rospy.loginfo("============= register callback start =============")
         # syc.registerCallback(self.update_bbox_and_pcloud)
         # rospy.loginfo("============= register callback end =============")
-        self.landmark_pub = rospy.Publisher("/sensor_frame_landmark_pose_with_id", Landmarksmsg, queue_size=1)
+        self.landmark_pub = rospy.Publisher("/boat_frame_landmark_pose_with_id", Landmarksmsg, queue_size=1)
 
     # def update_bbox_and_pcloud(self, bboxes, pcloud):
     def update_bbox(self, bboxes):
@@ -81,7 +81,6 @@ class LandmarkDetector:
         self.pc2_to_xyz()
         current_bboxes = self.bboxes
         self.get_center(current_bboxes)
-        # print(self.centers_xyz)
 
         self.publish_landmark_info(self.landmark_id, self.landmark_label, self.centers_xyz, pcloud.header)
 
@@ -118,16 +117,20 @@ class LandmarkDetector:
         self.camera_uv = uv_flc_cam / uv_flc_cam[2, :]  # 3xN
 
     def center_from_bbox(self, bboxes):
-        num_bboxes = len(self.bboxes.bounding_boxes)
+        num_bboxes = len(bboxes.bounding_boxes)
         # num_bboxes = len(bboxes.bounding_boxes)
         self.centers_uv = np.zeros((2, num_bboxes))  # 2xN
+        labels = []
         for i in range(num_bboxes):
             # print(f"xmin: {self.bboxes.bounding_boxes[i].xmin}, xmax: {self.bboxes.bounding_boxes[i].xmax}, ymin: {self.bboxes.bounding_boxes[i].ymin}, ymax: {self.bboxes.bounding_boxes[i].ymax}")
             # x_c = (self.bboxes.bounding_boxes[i].xmin + self.bboxes.bounding_boxes[i].xmax) / 2
             # y_c = (self.bboxes.bounding_boxes[i].ymin + self.bboxes.bounding_boxes[i].ymax) / 2
             x_c = (bboxes.bounding_boxes[i].xmin + bboxes.bounding_boxes[i].xmax) / 2
             y_c = (bboxes.bounding_boxes[i].ymin + bboxes.bounding_boxes[i].ymax) / 2
+            label = bboxes.bounding_boxes[i].Class
+            labels.append(label)
             self.centers_uv[:, i] = np.array([x_c, y_c])
+        self.landmark_label = labels
 
     def nearest_neighbor(self, bboxes):
         # num_bboxes = len(self.bboxes.bounding_boxes)
@@ -149,8 +152,15 @@ class LandmarkDetector:
         # print("================= End =============")
         self.centers_xyz = self.pcloud_xyz[self.nearest_idx_uv]
 
-    def lidar_to_base(self):
-        pass
+    def lidar_to_base(self, landmark_pose_lidar_frame):
+        p_ld2b = [0.7, 0, 1.8]
+        orien_ld2b = [0, 0, 0, 1]
+        R_ld2b = R.from_quat(orien_ld2b)
+        T_ld2b = np.concatenate((R_ld2b.as_dcm(), np.reshape(p_ld2b, (3,1))), axis=1)
+        T_ld2b = np.concatenate((T_ld2b, np.array([[0, 0, 0, 1]])), axis=0)
+        landmark_pose_lidar_frame = np.append(landmark_pose_lidar_frame, np.array([1]))
+        landmark_pose_base_frame =  np.matmul(T_ld2b, np.reshape(landmark_pose_lidar_frame, (4,1)))
+        return landmark_pose_base_frame;
 
     def get_center(self, bboxes):
         self.lidar_to_img_plane()
@@ -160,14 +170,16 @@ class LandmarkDetector:
     def publish_landmark_info(self, landmark_id, landmark_label, landmark_pose, header):
         landmarks_info_msg = Landmarksmsg()
         landmarks_info_msg.header = header
+        landmarks_info_msg.header.frame_id = '/landmarks'
         num_bboxes = len(landmark_pose)
         for i in range(num_bboxes):
+            landmark_pose_base_frame = self.lidar_to_base(landmark_pose[i])
             landmark_info_msg = Landmarkmsg()
             # landmark_info_msg.id = landmark_id[i]
-            # landmark_info_msg.label = landmark_label[i]
-            landmark_info_msg.pose.x = landmark_pose[i][0]
-            landmark_info_msg.pose.y = landmark_pose[i][1]
-            landmark_info_msg.pose.z = landmark_pose[i][2]
+            landmark_info_msg.label = landmark_label[i]
+            landmark_info_msg.pose.x = landmark_pose_base_frame[0]
+            landmark_info_msg.pose.y = landmark_pose_base_frame[1]
+            landmark_info_msg.pose.z = landmark_pose_base_frame[2]
             landmarks_info_msg.landmarks.append(landmark_info_msg)
         self.landmark_pub.publish(landmarks_info_msg)
 
