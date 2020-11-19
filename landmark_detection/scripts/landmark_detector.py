@@ -18,6 +18,7 @@ class LandmarkDetector:
     # Setup topic names
     bbox_topic = "/darknet_ros/bounding_boxes"
     pcloud_topic = "/wamv/sensors/lidars/lidar_wamv/points"
+    landmarks_topic = "/landmark_detection/landmarks"
     #camera_info_topic = "/wamv/sensors/cameras/front_left_camera/camera_info"
     #pose_topic = "/gazebo/link_states"
 
@@ -68,7 +69,7 @@ class LandmarkDetector:
         # rospy.loginfo("============= register callback start =============")
         # syc.registerCallback(self.update_bbox_and_pcloud)
         # rospy.loginfo("============= register callback end =============")
-        self.landmark_pub = rospy.Publisher("/boat_frame_landmark_pose_with_id", Landmarksmsg, queue_size=1)
+        self.landmark_pub = rospy.Publisher(self.landmarks_topic, Landmarksmsg, queue_size=1)
 
     # def update_bbox_and_pcloud(self, bboxes, pcloud):
     def update_bbox(self, bboxes):
