@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import numpy as np
 import rospy
 from sensor_msgs.msg import PointCloud2, PointField
@@ -70,13 +70,10 @@ class LandmarkDetector:
         self.pcloud_pc2 = pcloud
         self.pc2_to_xyz()
         current_bboxes = self.bboxes
-        self.get_center(current_bboxes)
-        print("Centers of objects are:")
-        print(self.centers_xyz)
-        print("================================")
-        # self.objects_to_landmarks(current_bboxes)
-
-        # self.publish_landmark_info(self.img_landmarks[:,0], self.img_landmarks[:,1], pcloud.header)
+        if (current_bboxes != None):
+            self.get_center(current_bboxes)
+            self.objects_to_landmarks(current_bboxes)
+            self.publish_landmark_info(self.img_landmarks[:,0], self.img_landmarks[:,1], pcloud.header)
 
     def pc2_to_xyz(self):
         xyz = np.array([[0, 0, 0]])
