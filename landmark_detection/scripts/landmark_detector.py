@@ -83,8 +83,7 @@ class LandmarkDetector:
         current_bboxes = self.bboxes
         if (current_bboxes != None):
             self.get_center(current_bboxes)
-            self.objects_to_landmarks(current_bboxes)
-            self.publish_landmark_info(self.img_landmarks[:,0], self.img_landmarks[:,1], pcloud.header)
+            self.publish_landmark_info(self.landmark_id, self.landmark_label, self.centers_xyz, pcloud.header)
 
     def pc2_to_xyz(self):
         xyz = np.array([[0, 0, 0]])
