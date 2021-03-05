@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import numpy as np
-import math
 import rospy
 from sensor_msgs.msg import PointCloud2, PointField
 from darknet_ros_msgs.msg import BoundingBoxes
@@ -10,6 +9,7 @@ import struct
 from std_msgs.msg import Header
 from message_filters import ApproximateTimeSynchronizer, Subscriber
 from scipy import spatial
+from geographic_msgs.msg import GeoPoseStamped
 from landmark_detection.msg import Landmarkmsg, Landmarksmsg
 from Landmarks import Landmarks
 from gazebo_msgs.msg import LinkStates
@@ -17,11 +17,14 @@ from scipy.spatial.transform import Rotation as R
 
 class LandmarkDetector:
     # Setup topic names
+    ####### Subscribe #######
     bbox_topic = "/darknet_ros/bounding_boxes"
     pcloud_topic = "/wamv/sensors/lidars/lidar_wamv/points"
-    landmarks_topic = "/landmark_detection/landmarks"
     #camera_info_topic = "/wamv/sensors/cameras/front_left_camera/camera_info"
     #pose_topic = "/gazebo/link_states"
+    ####### Publish #######
+    landmarks_topic = "/landmark_detection/landmarks"
+    landmark_lla_topic = "/vrx/perception/landmark"
 
     bboxes = None
     pcloud_pc2 = None
@@ -71,7 +74,8 @@ class LandmarkDetector:
         # syc.registerCallback(self.update_bbox_and_pcloud)
         # rospy.loginfo("============= register callback end =============")
         self.landmark_pub = rospy.Publisher(self.landmarks_topic, Landmarksmsg, queue_size=1)
-
+        self.landmark_lla_pub = rospy.Publisher(self.landmark_lla_topic, GeoPoseStamped, queue_size=1)
+        
     # def update_bbox_and_pcloud(self, bboxes, pcloud):
     def update_bbox(self, bboxes):
         self.bboxes = bboxes
@@ -173,6 +177,15 @@ class LandmarkDetector:
         self.center_from_bbox(bboxes)
         self.nearest_neighbor(bboxes)
 
+    def publish_landmark_lla_info(self, landmark_label, landmark_pose_lla, header):
+        landmark_lla_msg = GeoPoseStamped()
+        landmark_lla_msg.header = header
+        landmark_lla_msg.header.frame_id = landmark_label
+        landmark_lla_msg.pose.position.latitude = landmark_pose_lla[0]
+        landmark_lla_msg.pose.position.longitude = landmark_pose_lla[1]
+        landmark_lla_msg.pose.position.altitude = landmark_pose_lla[2]
+        self.landmark_lla_pub.publish(landmark_lla_msg)
+
     def publish_landmark_info(self, landmark_id, landmark_label, landmark_pose, header):
         landmarks_info_msg = Landmarksmsg()
         landmarks_info_msg.header = header
@@ -180,6 +193,10 @@ class LandmarkDetector:
         num_bboxes = len(landmark_pose)
         for i in range(num_bboxes):
             landmark_pose_base_frame = self.lidar_to_base(landmark_pose[i])
+            ############################ TO DO ###########################
+            # landmark_pose_lla = self.xyz_to_lla(landmark_pose_base_frame[i])
+            ##############################################################
+            self.publish_landmark_lla_info(landmark_label[i], landmark_pos_lla, header)
             landmark_info_msg = Landmarkmsg()
             # landmark_info_msg.id = landmark_id[i]
             landmark_info_msg.label = landmark_label[i]
