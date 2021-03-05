@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   darknet_ros_msgs
   geographic_msgs
+  nav_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -83,6 +84,7 @@ generate_messages(
     std_msgs
     darknet_ros_msgs
     geographic_msgs
+    nav_msgs
 )
 
 ################################################
@@ -116,7 +118,7 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   #INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp rospy std_msgs actionlib_msgs sensor_msgs message_runtime message_generation geometry_msgs message_filters sensor_msgs darknet_ros_msgs geographic_msgs
+  CATKIN_DEPENDS roscpp rospy std_msgs actionlib_msgs sensor_msgs message_runtime message_generation geometry_msgs message_filters sensor_msgs darknet_ros_msgs geographic_msgs nav_msgs
 )
 
 ###########

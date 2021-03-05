@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import numpy as np
+import math
 import rospy
 from sensor_msgs.msg import PointCloud2, PointField
 from darknet_ros_msgs.msg import BoundingBoxes
@@ -9,6 +10,8 @@ import struct
 from std_msgs.msg import Header
 from message_filters import ApproximateTimeSynchronizer, Subscriber
 from scipy import spatial
+from nav_msgs.msg import Odometry
+from sensor_msgs.msg import NavSatFix
 from geographic_msgs.msg import GeoPoseStamped
 from landmark_detection.msg import Landmarkmsg, Landmarksmsg
 from Landmarks import Landmarks
@@ -25,9 +28,13 @@ class LandmarkDetector:
     ####### Publish #######
     landmarks_topic = "/landmark_detection/landmarks"
     landmark_lla_topic = "/vrx/perception/landmark"
+    localization_topic = "/wamv/robot_localization/odometry/filtered"
+    gps_topic = "/wamv/sensors/gps/gps/fix"
 
     bboxes = None
     pcloud_pc2 = None
+    boat_lla = None
+    boat_yaw_enu = None
 
     pcloud_xyz = None
     camera_uv = None
@@ -65,14 +72,8 @@ class LandmarkDetector:
         rospy.loginfo("============= landmark_detector start =============")
         bbox_sub = rospy.Subscriber(self.bbox_topic, BoundingBoxes, self.update_bbox)
         pcl_sub = rospy.Subscriber(self.pcloud_topic, PointCloud2, self.update_pcloud)
-        # pose_sub = rospy.Subscriber(self.pose_topic, LinkStates, self.publish_landmark_info)
-        # bbox_sub = Subscriber(self.bbox_topic, BoundingBoxes)
-        # pcl_sub = Subscriber(self.pcloud_topic, PointCloud2)
-        # rospy.loginfo("============= synchronizer start =============")
-        # syc = ApproximateTimeSynchronizer([bbox_sub, pcl_sub], queue_size=10, slop=0.35)
-        # rospy.loginfo("============= register callback start =============")
-        # syc.registerCallback(self.update_bbox_and_pcloud)
-        # rospy.loginfo("============= register callback end =============")
+        gps_sub = rospy.Subscriber(self.gps_topic, NavSatFix, self.update_gps)
+        locl_sub = rospy.Subscriber(self.localization_topic, Odometry, self.update_odometry)
         self.landmark_pub = rospy.Publisher(self.landmarks_topic, Landmarksmsg, queue_size=1)
         self.landmark_lla_pub = rospy.Publisher(self.landmark_lla_topic, GeoPoseStamped, queue_size=1)
         
@@ -88,7 +89,18 @@ class LandmarkDetector:
         current_bboxes = self.bboxes
         if (current_bboxes != None):
             self.get_center(current_bboxes)
+
             self.publish_landmark_info(self.landmark_id, self.landmark_label, self.centers_xyz, pcloud.header)
+
+    def update_gps(self, gps_msg):
+        self.boat_lla = [gps_msg.latitude, gps_msg.longitude, gps_msg.altitude]
+
+    def update_odometry(self, odometry_msg):
+        orientation_q = odometry_msg.pose.pose.orientation
+        orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
+        r = R.from_quat(orientation_list)
+        rpy = r.as_euler('xyz', degrees=False)
+        self.boat_yaw_enu = rpy[2]
 
     def pc2_to_xyz(self):
         xyz = np.array([[0, 0, 0]])
@@ -193,10 +205,11 @@ class LandmarkDetector:
         num_bboxes = len(landmark_pose)
         for i in range(num_bboxes):
             landmark_pose_base_frame = self.lidar_to_base(landmark_pose[i])
-            ############################ TO DO ###########################
-            # landmark_pose_lla = self.xyz_to_lla(landmark_pose_base_frame[i])
-            ##############################################################
-            self.publish_landmark_lla_info(landmark_label[i], landmark_pos_lla, header)
+            
+            landmark_pose_lla = self.xyz_to_lla(landmark_pose_base_frame)
+            print(f'{landmark_pose_lla}')
+            
+            self.publish_landmark_lla_info(landmark_label[i], landmark_pose_lla, header)
             landmark_info_msg = Landmarkmsg()
             # landmark_info_msg.id = landmark_id[i]
             landmark_info_msg.label = landmark_label[i]
@@ -206,14 +219,28 @@ class LandmarkDetector:
             landmarks_info_msg.landmarks.append(landmark_info_msg)
         self.landmark_pub.publish(landmarks_info_msg)
 
-    def lla_to_ecef(lla):
+    def xyz_to_lla(self, landmark_pose_base):
+        # print(f"landmark_base:{landmark_pose_base}")
+        landmark_enu = self.base_link_to_enu(self.boat_yaw_enu, landmark_pose_base)
+        # print(f"landmark_enu:{landmark_enu}")
+        boat_lla = self.boat_lla
+        # print(f"boat_lla:{self.boat_lla}")
+        boat_ecef = self.lla_to_ecef(boat_lla)
+        # print(f"boat_ecef:{boat_ecef}")
+        landmark_ecef = self.enu_to_ecef(boat_ecef, landmark_enu, boat_lla)
+        # print(f"landmark_ecef:{landmark_ecef}")
+        landmark_lla = self.ecef_to_lla(landmark_ecef)
+        # print(f"landmark_lla:{landmark_lla}")
+        return landmark_lla
+
+    def lla_to_ecef(self, lla):
         a = 6378137.0 # equatorial radius
         b = 6356752.31424518 # polar radius
         square_ratio = b**2 / a**2 # 0.9933056200098589
         e_square = 1 - square_ratio
-        phi = lla[0] # latitude
-        lam = lla[1] # longitude
-        h = lla[2]   # altitude
+        phi = lla[0] * math.pi / 180 # latitude in rad
+        lam = lla[1] * math.pi / 180 # longitude in rad
+        h = lla[2]   # altitude 
         N_phi = a / (np.sqrt(1 - e_square*np.square(np.sin(phi))))
 
         X = (N_phi + h) * np.cos(phi) * np.cos(lam)
@@ -222,7 +249,7 @@ class LandmarkDetector:
 
         return np.array([X, Y, Z])
 
-    def ecef_to_lla(landmark_ecef):
+    def ecef_to_lla(self, landmark_ecef):
         x = landmark_ecef[0]
         y = landmark_ecef[1]
         z = landmark_ecef[2]
@@ -248,10 +275,13 @@ class LandmarkDetector:
             sn = math.sin(theta)
             N = math.pow(a,2.0)/math.sqrt(math.pow(a*cs,2.0)+math.pow(b*sn,2.0))
             h = p/cs - N
-        llh = {'lon':clambda, 'lat':theta, 'height': h}
+        # llh = {'lon':clambda, 'lat':theta, 'height': h}
+        lat = theta * 180 / math.pi
+        lon = clambda * 180 / math.pi
+        llh = [lat, lon, 0.0]
         return llh
 
-    def enu_to_ecef(boat_ecef, landmark_enu, boat_lla):
+    def enu_to_ecef(self, boat_ecef, landmark_enu, boat_lla):
         lat = boat_lla[0]
         lon = boat_lla[1]
         slat = np.sin(lat)
@@ -266,12 +296,12 @@ class LandmarkDetector:
         landmark_ecef = np.matmul(R, landmark_enu) + boat_ecef
         return landmark_ecef
 
-    def base_link_to_enu(yaw, landmark_base):
+    def base_link_to_enu(self, yaw, landmark_base):
         # yaw in radians
-        landmark_enu = np.zeros([1,3])
-        landmark_enu[0,2] = landmark_base[0,2]
-        landmark_enu[0,0] = landmark_base[0,0] * np.cos(yaw) - landmark_base[0,1] * np.sin(yaw)
-        landmark_enu[0,1] = landmark_base[0,0] * np.sin(yaw) + landmark_base[0,1] * np.cos(yaw)
+        landmark_enu = np.array([0.0, 0.0, 0.0])
+        landmark_enu[2] = landmark_base[2]
+        landmark_enu[0] = landmark_base[0] * np.cos(yaw) - landmark_base[1] * np.sin(yaw)
+        landmark_enu[1] = landmark_base[0] * np.sin(yaw) + landmark_base[1] * np.cos(yaw)
         return landmark_enu
     
 
