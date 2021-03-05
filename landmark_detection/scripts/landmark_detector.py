@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import numpy as np
+import math
 import rospy
 from sensor_msgs.msg import PointCloud2, PointField
 from darknet_ros_msgs.msg import BoundingBoxes
@@ -187,6 +188,75 @@ class LandmarkDetector:
             landmark_info_msg.pose.z = landmark_pose_base_frame[2]
             landmarks_info_msg.landmarks.append(landmark_info_msg)
         self.landmark_pub.publish(landmarks_info_msg)
+
+    def lla_to_ecef(lla):
+        a = 6378137.0 # equatorial radius
+        b = 6356752.31424518 # polar radius
+        square_ratio = b**2 / a**2 # 0.9933056200098589
+        e_square = 1 - square_ratio
+        phi = lla[0] # latitude
+        lam = lla[1] # longitude
+        h = lla[2]   # altitude
+        N_phi = a / (np.sqrt(1 - e_square*np.square(np.sin(phi))))
+
+        X = (N_phi + h) * np.cos(phi) * np.cos(lam)
+        Y = (N_phi + h) * np.cos(phi) * np.sin(lam)
+        Z = (square_ratio * N_phi + h) * np.sin(phi)
+
+        return np.array([X, Y, Z])
+
+    def ecef_to_lla(landmark_ecef):
+        x = landmark_ecef[0]
+        y = landmark_ecef[1]
+        z = landmark_ecef[2]
+        # --- WGS84 constants
+        a = 6378137.0
+        f = 1.0 / 298.257223563
+        # --- derived constants
+        b = a - f*a
+        e = math.sqrt(math.pow(a,2.0)-math.pow(b,2.0))/a
+        clambda = math.atan2(y,x)
+        p = math.sqrt(pow(x,2.0)+pow(y,2))
+        h_old = 0.0
+        # first guess with h=0 meters
+        theta = math.atan2(z,p*(1.0-math.pow(e,2.0)))
+        cs = math.cos(theta)
+        sn = math.sin(theta)
+        N = math.pow(a,2.0)/math.sqrt(math.pow(a*cs,2.0)+math.pow(b*sn,2.0))
+        h = p/cs - N
+        while abs(h-h_old) > 1.0e-6:
+            h_old = h
+            theta = math.atan2(z,p*(1.0-math.pow(e,2.0)*N/(N+h)))
+            cs = math.cos(theta)
+            sn = math.sin(theta)
+            N = math.pow(a,2.0)/math.sqrt(math.pow(a*cs,2.0)+math.pow(b*sn,2.0))
+            h = p/cs - N
+        llh = {'lon':clambda, 'lat':theta, 'height': h}
+        return llh
+
+    def enu_to_ecef(boat_ecef, landmark_enu, boat_lla):
+        lat = boat_lla[0]
+        lon = boat_lla[1]
+        slat = np.sin(lat)
+        clat = np.cos(lat)
+        slon = np.sin(lon)
+        clon = np.cos(lon)
+        R = np.array([[-slon, clon, 0],
+                      [-slat*clon, -slat*slon, clat],
+                      [clat*clon, clat*slon, slat]])
+        boat_ecef = np.array(boat_ecef).reshape(-1,1)
+        landmark_enu = np.array(landmark_enu).reshape(-1,1)
+        landmark_ecef = np.matmul(R, landmark_enu) + boat_ecef
+        return landmark_ecef
+
+    def base_link_to_enu(yaw, landmark_base):
+        # yaw in radians
+        landmark_enu = np.zeros([1,3])
+        landmark_enu[0,2] = landmark_base[0,2]
+        landmark_enu[0,0] = landmark_base[0,0] * np.cos(yaw) - landmark_base[0,1] * np.sin(yaw)
+        landmark_enu[0,1] = landmark_base[0,0] * np.sin(yaw) + landmark_base[0,1] * np.cos(yaw)
+        return landmark_enu
+    
 
     def run(self):
         rospy.spin()
