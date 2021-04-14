@@ -203,20 +203,23 @@ class LandmarkDetector:
         landmarks_info_msg.header = header
         landmarks_info_msg.header.frame_id = '/landmarks'
         num_bboxes = len(landmark_pose)
-        for i in range(num_bboxes):
-            landmark_pose_base_frame = self.lidar_to_base(landmark_pose[i])
-            
-            landmark_pose_lla = self.xyz_to_lla(landmark_pose_base_frame)
-            print(f'{landmark_pose_lla}')
-            
-            self.publish_landmark_lla_info(landmark_label[i], landmark_pose_lla, header)
-            landmark_info_msg = Landmarkmsg()
-            # landmark_info_msg.id = landmark_id[i]
-            landmark_info_msg.label = landmark_label[i]
-            landmark_info_msg.pose.x = landmark_pose_base_frame[0]
-            landmark_info_msg.pose.y = landmark_pose_base_frame[1]
-            landmark_info_msg.pose.z = landmark_pose_base_frame[2]
-            landmarks_info_msg.landmarks.append(landmark_info_msg)
+        if num_bboxes == 0:
+            pass
+        else:
+            for i in range(num_bboxes):
+                landmark_pose_base_frame = self.lidar_to_base(landmark_pose[i])
+                
+                landmark_pose_lla = self.xyz_to_lla(landmark_pose_base_frame)
+                print(f'{landmark_pose_lla}')
+                
+                self.publish_landmark_lla_info(landmark_label[i], landmark_pose_lla, header)
+                landmark_info_msg = Landmarkmsg()
+                # landmark_info_msg.id = landmark_id[i]
+                landmark_info_msg.label = landmark_label[i]
+                landmark_info_msg.pose.x = landmark_pose_base_frame[0]
+                landmark_info_msg.pose.y = landmark_pose_base_frame[1]
+                landmark_info_msg.pose.z = landmark_pose_base_frame[2]
+                landmarks_info_msg.landmarks.append(landmark_info_msg)
         self.landmark_pub.publish(landmarks_info_msg)
 
     def xyz_to_lla(self, landmark_pose_base):
