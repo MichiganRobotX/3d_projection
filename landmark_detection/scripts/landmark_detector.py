@@ -23,13 +23,13 @@ class LandmarkDetector:
     ####### Subscribe #######
     bbox_topic = "/darknet_ros/bounding_boxes"
     pcloud_topic = "/wamv/sensors/lidars/lidar_wamv/points"
+    gps_topic = "/wamv/sensors/gps/gps/fix"
+    localization_topic = "/wamv/robot_localization/odometry/filtered"
     #camera_info_topic = "/wamv/sensors/cameras/front_left_camera/camera_info"
     #pose_topic = "/gazebo/link_states"
     ####### Publish #######
     landmarks_topic = "/landmark_detection/landmarks"
     landmark_lla_topic = "/vrx/perception/landmark"
-    localization_topic = "/wamv/robot_localization/odometry/filtered"
-    gps_topic = "/wamv/sensors/gps/gps/fix"
 
     bboxes = None
     pcloud_pc2 = None
