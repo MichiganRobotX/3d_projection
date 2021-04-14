@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch>
+  <include file="$(find darknet_ros)/launch/robotx657.launch"/>
+  <node pkg="landmark_detection" type="landmark_detector.py" name="landmark_detection"/>
+</launch>
