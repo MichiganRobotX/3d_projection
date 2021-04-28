@@ -16,7 +16,7 @@ localization_topic is given by SLAM team, it containes boat poses in map frame.
 landmarks_topic = "/landmark_detection/landmarks"
 landmark_lla_topic = "/vrx/perception/landmark"
 ```
-landmarks_topic publishes the landmark labels and landmark positions in LiDAR frame.<br/>
+landmarks_topic publishes the landmark labels and landmark positions in base frame.<br/>
 landmark_lla_topic publishes the landmark labels and landmark positions in LLA coordinate (which is required by the RobotX tasks).<br/>
 
 ## To Run the package
